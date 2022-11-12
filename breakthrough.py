@@ -1,10 +1,12 @@
 from jogos import *
+from jogar import *
 from collections import namedtuple
 from copy import deepcopy
+import random
 
 OJogoBT_17 = namedtuple("OJogoBT_17","to_move, board")
 
-class EstadoJogoBT_17(OJogoBT_17):
+class EstadoBT_17(OJogoBT_17):
     cols = "abcdefgh"
     def action_format(self, old_pos, new_pos):
         col1,row1 = old_pos
@@ -17,19 +19,16 @@ class EstadoJogoBT_17(OJogoBT_17):
 
         return (col,row)
 
-            
-        
-
 class JogoBT_17(Game):
-
+    
     cols = "abcdefgh"
 
     def __init__(self):
-        self.initial = EstadoJogoBT_17(1,dict())
+        self.initial = EstadoBT_17(1,dict())
         for num in [1,2,7,8]:
             for letter in range(1,len(self.cols)+1):
                 self.initial.board[(letter,num)] = "W" if num <=2 else "B"
-
+    
     def display(self, state):
         print("-----------------")   
         for row in range(8,0,-1):
@@ -45,7 +44,8 @@ class JogoBT_17(Game):
         print(" |", end="")
         [print(col,end=" ") for col in self.cols]  
         print()
-        print("--NEXT PLAYER: " + ("W" if state.to_move == 1 else "B"))
+        if not self.terminal_test(state):
+            print("--NEXT PLAYER: " + ("W" if state.to_move == 1 else "B"))
 
     def actions(self, state):
         res = list()
@@ -53,7 +53,7 @@ class JogoBT_17(Game):
         #ex pos "12" col row
         for pos,piece in state.board.items():
             col,row = pos
-            if state.to_move == 1 and state.board[pos] == "W" or state.to_move == 2 and state.board[pos] == "B" :
+            if state.to_move == 1 and state.board[pos] == "W" or state.to_move == 2 and state.board[pos] == "B":
                 for dc in col_moves :
                     new_col = col + dc
                     new_row = row + 1 if state.to_move == 1 else row - 1
@@ -68,15 +68,66 @@ class JogoBT_17(Game):
                             res.append(state.action_format(pos,new_pos))
         res.sort()
         return res
-
+    
     def result(self, state, move):
         old_pos, new_pos = move.split("-")
         new_board = deepcopy(state.board)
         del new_board[state.pos_disformat(old_pos)] 
         new_board[state.pos_disformat(new_pos)] = "W" if state.to_move == 1 else "B"
         new_to_move = 1 if state.to_move == 2 else 2
-        return EstadoJogoBT_17(new_to_move,new_board)
+        return EstadoBT_17(new_to_move,new_board)
+
+    def executa(self, state, actions):
+        curr_state = deepcopy(state)
+        for action in actions:
+            curr_state = self.result(curr_state, action)
+        return curr_state   
+
+    def terminal_test(self, state):
+        for pos,piece in state.board.items():
+            if piece == "W" and pos[1] == 8 or piece == "B" and pos[1] == 1:
+                return True
+        return False
+            
+    def utility(self, state, player):
+        if not self.terminal_test(state):
+            return 0
+        if player == state.to_move:
+            return -1
+        return 1
+
+class Belarmino(JogadorAlfaBeta):
+
+    def __init__(self):
+        super().__init__("Belarmino", 4, self.func_aval)
+    
+    def func_aval(self, state, player):
+        # i^i * count(Bi) = i^i + i^i ..
+        piece_player = "W" if player == 1 else "B"
+        res = 0
+        for pos,piece in state.board.items():
+            if piece_player == piece:
+                res += pos[1]**pos[1] * (-1 if piece == "B" else 1)
+        return res
+
+
+class RandomPlayer(Jogador):
+
+    def __init__(self):
+        super().__init__("aleatorio", self.fun)
+
+    def fun(self, game,state):
+        return random.choice(game.actions(state))
         
-game = JogoBT_17()
-print(game.actions(game.initial)) 
-game.display(game.result(game.initial, "a2-a3")) 
+jj = JogoBT_17() 
+a = joga11(jj,Belarmino(),RandomPlayer())
+print(a)
+    
+
+        
+	
+# s= jj.executa(jj.initial,
+# ['f2-f3', 'e7-d6', 'd2-e3', 'd6-d5', 'b2-b3', 'd5-c4',
+# 'a2-a3', 'c4-b3', 'e3-d4', 'b3-c2', 'e1-f2', 'c2-d1'])
+# jj.display(s)
+# print(jj.terminal_test(s))
