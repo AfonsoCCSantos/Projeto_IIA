@@ -3,8 +3,9 @@ from jogar import *
 from collections import namedtuple
 from copy import deepcopy
 import random
+from math import *
 
-OJogoBT_17 = namedtuple("OJogoBT_17","to_move, board")
+OJogoBT_17 = namedtuple("OJogoBT_17","to_move, board num_plays")
 
 class EstadoBT_17(OJogoBT_17):
     cols = "abcdefgh"
@@ -24,7 +25,7 @@ class JogoBT_17(Game):
     cols = "abcdefgh"
 
     def __init__(self):
-        self.initial = EstadoBT_17(1,dict())
+        self.initial = EstadoBT_17(1,dict(),0)
         for num in [1,2,7,8]:
             for letter in range(1,len(self.cols)+1):
                 self.initial.board[(letter,num)] = "W" if num <=2 else "B"
@@ -51,7 +52,7 @@ class JogoBT_17(Game):
         res = list()
         col_moves = [-1,0,1]
         #ex pos "12" col row
-        for pos,piece in state.board.items():
+        for pos in state.board:
             col,row = pos
             if state.to_move == 1 and state.board[pos] == "W" or state.to_move == 2 and state.board[pos] == "B":
                 for dc in col_moves :
@@ -75,7 +76,7 @@ class JogoBT_17(Game):
         del new_board[state.pos_disformat(old_pos)] 
         new_board[state.pos_disformat(new_pos)] = "W" if state.to_move == 1 else "B"
         new_to_move = 1 if state.to_move == 2 else 2
-        return EstadoBT_17(new_to_move,new_board)
+        return EstadoBT_17(new_to_move,new_board,state.num_plays+1)
 
     def executa(self, state, actions):
         curr_state = deepcopy(state)
@@ -99,8 +100,8 @@ class JogoBT_17(Game):
 class Belarmino(JogadorAlfaBeta):
 
     def __init__(self):
-        super().__init__("Belarmino", 4, self.func_aval)
-    
+        super().__init__("Belarmino", 2, self.func_aval)
+
     def func_aval(self, state, player):
         # i^i * count(Bi) = i^i + i^i ..
         piece_player = "W" if player == 1 else "B"
@@ -110,6 +111,39 @@ class Belarmino(JogadorAlfaBeta):
                 res += pos[1]**pos[1] * (-1 if piece == "B" else 1)
         return res
 
+class BelarminoProMax(JogadorAlfaBeta):
+
+    def __init__(self):
+        super().__init__("BelarminoProMax", 2, self.func_aval)
+    
+    def func_aval(self, state, player):
+        # i^i * count(Bi) = i^i + i^i ..
+        piece_player = "W" if player == 1 else "B"
+        res = 0
+        for pos,piece in state.board.items():
+            row = pos[1]
+            if piece_player == piece:
+                if piece == "W":
+                    res += (row**row) / (state.num_plays**2)
+                else:
+                    inv = 8-row
+                    res += (inv**inv) / (state.num_plays**2)
+        return res
+
+
+class MaisPecas(JogadorAlfaBeta):
+    def __init__(self):
+        super().__init__("mais pecas", 2, self.func_aval)
+    
+    def func_aval(self, state, player):
+        res = 0
+        player_piece = "W" if player == 1 else "B"
+        for piece in state.board.values():
+            if piece == player_piece:
+                res+=1
+            else:
+                res-=1
+        return res
 
 class RandomPlayer(Jogador):
 
@@ -118,12 +152,34 @@ class RandomPlayer(Jogador):
 
     def fun(self, game,state):
         return random.choice(game.actions(state))
+
+
+class PecasNoMeio(JogadorAlfaBeta):
+    def __init__(self):
+        super().__init__("pecas no meio", 2, self.func_aval)
+    
+    def func_aval(self, state, player):
+        piece_player = "W" if player == 1 else "B"
+        res = 0
+        middle = 4.5
+        for pos,piece in state.board.items():
+            col,row = pos
+            if piece_player == piece:
+                if piece == "W":
+                    res += ((row**row) / (state.num_plays**2)) / abs(col-middle)
+                else:
+                    inv = 8-row
+                    res += ((inv**inv) / (state.num_plays**2)) / abs(col-middle)
+        return res
+
         
 jj = JogoBT_17() 
-a = joga11(jj,Belarmino(),RandomPlayer())
-print(a)
-    
+a = joga11(jj,PecasNoMeio(),BelarminoProMax())
+# print(a)
+mostraJogo(jj,a,True,True)
 
+# valorizar pecas pro meio
+# desvalorizar pecas isoladas
         
 	
 # s= jj.executa(jj.initial,
