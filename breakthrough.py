@@ -142,11 +142,11 @@ class AcabarLogo(JogadorAlfaBeta):
             row = pos[1]
             if piece_player == piece:
                 if (piece == "W" and row == 8) or (piece == "B" and row == 1):
-                    return 999999-state.num_plays
+                    return (16**16)-state.num_plays
                 if piece == "W":
                     res += (row**row) 
                 else:
-                    inv = 8-row
+                    inv = 8-row +1
                     res += (inv**inv)
         return res
 
@@ -207,12 +207,12 @@ class PecasNoMeio(JogadorAlfaBeta):
 jj = JogoBT_17() 
 
 
-# for i in range(0,10):
-a = joga11(jj,AcabarLogo(),BelarminoProMax())
-    # print(a[-1])
+for i in range(0,10):
+    a = joga11(jj,AcabarLogo(),BelarminoProMax())
+    print(a[-1])
 
 # print(a)
-mostraJogo(jj,a,True,True)
+# mostraJogo(jj,a,True,True)
 
 # valorizar pecas pro meio
 # desvalorizar pecas isoladas
