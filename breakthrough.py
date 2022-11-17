@@ -130,6 +130,26 @@ class BelarminoProMax(JogadorAlfaBeta):
                     res += (inv**inv) / (state.num_plays**2)
         return res
 
+class AcabarLogo(JogadorAlfaBeta):
+    def __init__(self):
+        super().__init__("AcabarLogo", 2, self.func_aval)
+    
+    def func_aval(self, state, player):
+        # i^i * count(Bi) = i^i + i^i ..
+        piece_player = "W" if player == 1 else "B"
+        res = 0
+        for pos,piece in state.board.items():
+            row = pos[1]
+            if piece_player == piece:
+                if (piece == "W" and row == 8) or (piece == "B" and row == 1):
+                    return 999999-state.num_plays
+                if piece == "W":
+                    res += (row**row) 
+                else:
+                    inv = 8-row
+                    res += (inv**inv)
+        return res
+
 
 class MaisPecas(JogadorAlfaBeta):
     def __init__(self):
@@ -153,6 +173,15 @@ class RandomPlayer(Jogador):
     def fun(self, game,state):
         return random.choice(game.actions(state))
 
+class Query(Jogador):
+
+    def __init__(self):
+        super().__init__("eu", self.fun)
+    
+    def fun(self, game,state):
+        game.display(state)
+        return query_player(game,state)
+
 
 class PecasNoMeio(JogadorAlfaBeta):
     def __init__(self):
@@ -166,15 +195,22 @@ class PecasNoMeio(JogadorAlfaBeta):
             col,row = pos
             if piece_player == piece:
                 if piece == "W":
-                    res += ((row**row) / (state.num_plays**2)) / abs(col-middle)
+                    res += ((row**row) / (state.num_plays**2)) / (abs(col-middle) * abs(row-middle))
                 else:
                     inv = 8-row
-                    res += ((inv**inv) / (state.num_plays**2)) / abs(col-middle)
+                    res += ((inv**inv) / (state.num_plays**2)) / (abs(col-middle) * abs(row-middle))
         return res
+
+    
 
         
 jj = JogoBT_17() 
-a = joga11(jj,PecasNoMeio(),BelarminoProMax())
+
+
+# for i in range(0,10):
+a = joga11(jj,AcabarLogo(),BelarminoProMax())
+    # print(a[-1])
+
 # print(a)
 mostraJogo(jj,a,True,True)
 

@@ -1,1 +1,1 @@
-self.initial = {}
+a
