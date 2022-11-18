@@ -107,12 +107,17 @@ class Belarmino(JogadorAlfaBeta):
         piece_player = "W" if player == 1 else "B"
         res = 0
         for pos,piece in state.board.items():
+            row = pos[1]
             if piece_player == piece:
-                res += pos[1]**pos[1] * (-1 if piece == "B" else 1)
+                if piece == "W":
+                    res += (row**row)
+                else:
+                    inv = 8 - row + 1
+                    res += (inv**inv)
         return res
 
 class BelarminoProMax(JogadorAlfaBeta):
-
+    
     def __init__(self):
         super().__init__("BelarminoProMax", 2, self.func_aval)
     
@@ -126,30 +131,50 @@ class BelarminoProMax(JogadorAlfaBeta):
                 if piece == "W":
                     res += (row**row) / (state.num_plays**2)
                 else:
-                    inv = 8-row
+                    inv = 8 - row + 1
                     res += (inv**inv) / (state.num_plays**2)
         return res
 
-class AcabarLogo(JogadorAlfaBeta):
+
+
+class GigaChad(JogadorAlfaBeta):
     def __init__(self):
-        super().__init__("AcabarLogo", 2, self.func_aval)
+        super().__init__("Alexandre", 2, self.func_aval)
     
     def func_aval(self, state, player):
-        # i^i * count(Bi) = i^i + i^i ..
         piece_player = "W" if player == 1 else "B"
         res = 0
+        counter = 0
         for pos,piece in state.board.items():
             row = pos[1]
+            # Win or lost state
+            if (piece == "W" and row == 8) or (piece == "B" and row == 1):
+                return (8**8 * 16)-state.num_plays if piece_player == piece else -(8**8 * 16)
+            # State where win/lost is guaranteed next round
+            if ((piece == "W" and row == 7) or (piece == "B" and row == 2)) and notThreathned(pos,state,piece):
+                return (8**8 * 15)-state.num_plays if piece_player == piece else -(8**8 * 15)
             if piece_player == piece:
-                if (piece == "W" and row == 8) or (piece == "B" and row == 1):
-                    return (16**16)-state.num_plays
                 if piece == "W":
                     res += (row**row) 
                 else:
-                    inv = 8-row +1
+                    inv = 8 - row + 1
                     res += (inv**inv)
-        return res
+                # Vantagem em numero de pecas
+                counter += 1
+            else:
+                counter -=1
+        return res + (res**counter)
 
+def notThreathned(pos,state,piece):
+    col,row = pos
+    if piece == "W":
+        attacker1 = (col-1,row+1)
+        attacker2 = (col+1,row+1)
+        return attacker1 not in state.board and attacker2 not in state.board
+    if piece == "B":
+        attacker1 = (col-1,row-1)
+        attacker2 = (col+1,row-1)
+        return attacker1 not in state.board and attacker2 not in state.board               
 
 class MaisPecas(JogadorAlfaBeta):
     def __init__(self):
@@ -200,16 +225,12 @@ class PecasNoMeio(JogadorAlfaBeta):
                     inv = 8-row
                     res += ((inv**inv) / (state.num_plays**2)) / (abs(col-middle) * abs(row-middle))
         return res
-
-    
-
-        
+     
 jj = JogoBT_17() 
 
-
 for i in range(0,10):
-    a = joga11(jj,AcabarLogo(),BelarminoProMax())
-    print(a[-1])
+    a = joga11(jj,GigaChad(),BelarminoProMax())
+    print(a[0][a[-1] if a[-1] == -1 else 0])
 
 # print(a)
 # mostraJogo(jj,a,True,True)
