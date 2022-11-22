@@ -65,7 +65,7 @@ class JogoBT_17(Game):
                         new_pos = (new_col,new_row)
                         # Verificar se esta uma peca nesta new_pos e se podemos come-la
                         if new_pos not in state.board or (new_pos in state.board
-                             and state.board[new_pos] == other_piece and new_col != col):
+                            and state.board[new_pos] == other_piece and new_col != col):
                             res.append(state.action_format(pos,new_pos))
         res.sort()
         return res
@@ -83,7 +83,7 @@ class JogoBT_17(Game):
         for action in actions:
             curr_state = self.result(curr_state, action)
         return curr_state   
-
+    
     def terminal_test(self, state):
         for pos,piece in state.board.items():
             if piece == "W" and pos[1] == 8 or piece == "B" and pos[1] == 1:
@@ -100,7 +100,7 @@ class JogoBT_17(Game):
 class Belarmino(JogadorAlfaBeta):
 
     def __init__(self):
-        super().__init__("Belarmino", 2, self.func_aval)
+        super().__init__("Belarmino", 3, self.func_aval)
 
     def func_aval(self, state, player):
         # i^i * count(Bi) = i^i + i^i ..
@@ -119,7 +119,7 @@ class Belarmino(JogadorAlfaBeta):
 class BelarminoProMax(JogadorAlfaBeta):
     
     def __init__(self):
-        super().__init__("BelarminoProMax", 2, self.func_aval)
+        super().__init__("BelarminoProMax", 3, self.func_aval)
     
     def func_aval(self, state, player):
         # i^i * count(Bi) = i^i + i^i ..
@@ -134,8 +134,6 @@ class BelarminoProMax(JogadorAlfaBeta):
                     inv = 8 - row + 1
                     res += (inv**inv) / (state.num_plays**2)
         return res
-
-
 
 class GigaChad(JogadorAlfaBeta):
     def __init__(self):
@@ -163,7 +161,7 @@ class GigaChad(JogadorAlfaBeta):
                 counter += 1
             else:
                 counter -=1
-        return res + (res**counter)
+        return res + (8**8 * counter)
 
 def notThreathned(pos,state,piece):
     col,row = pos
@@ -174,7 +172,68 @@ def notThreathned(pos,state,piece):
     if piece == "B":
         attacker1 = (col-1,row-1)
         attacker2 = (col+1,row-1)
-        return attacker1 not in state.board and attacker2 not in state.board               
+        return attacker1 not in state.board and attacker2 not in state.board    
+
+def threeInRow(state,piece):
+    counter_adv = 0
+    counter = 0
+    piece_adv = "B" if piece == "W" else "W"
+    for x in range(1,9):
+        antpenultimate_row = 3 if piece == "W" else 6
+        # adv_antepenultimate_row = 6 if piece == "W" else 3
+
+        # if (x,adv_antepenultimate_row) in state.board and state.board[(x,adv_antepenultimate_row)] == piece and \
+        #      notThreathned((x,adv_antepenultimate_row),state,piece):
+        #     counter += 1
+        # else:
+        #     counter = 0
+        # if counter == 3: return (True,piece)
+
+        if (x,antpenultimate_row) in state.board and state.board[(x,antpenultimate_row)] == piece_adv and \
+             notThreathned((x,antpenultimate_row),state,piece_adv): 
+            counter_adv += 1
+        else:
+            counter_adv = 0
+        if counter_adv == 3: return (True,piece_adv)
+
+    return (False,None)    
+
+
+    
+class TarzanTaborda(JogadorAlfaBeta):
+    def __init__(self):
+        super().__init__("Alexandre+", 3, self.func_aval)
+    
+    def func_aval(self, state, player):
+        piece_player = "W" if player == 1 else "B"
+        res = 0
+        counter = 0
+        for pos,piece in state.board.items():
+            row = pos[1]
+            # Win or lost state
+            if (piece == "W" and row == 8) or (piece == "B" and row == 1):
+                return (8**8 * 16)-state.num_plays if piece_player == piece else -(8**8 * 16)
+            # State where win/lost is guaranteed next round
+            if ((piece == "W" and row == 7) or (piece == "B" and row == 2)) and notThreathned(pos,state,piece):
+                return (8**8 * 15)-state.num_plays if piece_player == piece else -(8**8 * 15)
+            if piece_player == piece:
+                if piece == "W":
+                    res += (row**row) 
+                else:
+                    inv = 8 - row + 1
+                    res += (inv**inv)
+                # Vantagem em numero de pecas
+                counter += 1
+            else:
+                counter -= 1
+        # If one of the players manages to do an unthreatned 3 in row in the antepenultimate row he wins the game in 4 moves 
+        three = threeInRow(state,piece_player)
+        if three[0]:
+            # print(f"THREE IN ROW DE {three[1]}")
+            return (8**8 * 14)-state.num_plays if three[1] == piece_player else -(8**8 * 14)
+        return res + (8**8 * counter)
+
+        
 
 class MaisPecas(JogadorAlfaBeta):
     def __init__(self):
@@ -229,7 +288,7 @@ class PecasNoMeio(JogadorAlfaBeta):
 jj = JogoBT_17() 
 
 for i in range(0,10):
-    a = joga11(jj,GigaChad(),BelarminoProMax())
+    a = joga11(jj,Query(),GigaChad())
     print(a[0][a[-1] if a[-1] == -1 else 0])
 
 # print(a)
