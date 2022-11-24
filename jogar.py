@@ -44,30 +44,30 @@ def joga11(game, jog1, jog2):
     #p jogou e ganhou
     return ((jog1.nome,jog2.nome),lista_jogadas, game.utility(estado,1))
 
-# from func_timeout import func_timeout, FunctionTimedOut
+from func_timeout import func_timeout, FunctionTimedOut
 
-# def joga11com_timeout(game,jog1, jog2, nsec):
-#     ### jog1 e jog2 são jogadores com funções que dado um estado do jogo devolvem a jogada que escolheram
-#     ### devolve uma lista de jogadas e o resultado 1 se Brancas ganha -1 se Pretas ganha
-#     estado=game.initial
-#     proxjog = jog1
-#     lista_jogadas=[]
-#     while not game.terminal_test(estado):
-#         try:
-#             ReturnedValue = func_timeout(nsec, proxjog.fun, args=(game, estado))
-#         except FunctionTimedOut:
-#             print("pim!", proxjog.nome)
-#             ReturnedValue = None    
-#         jogada = ReturnedValue
-#         if jogada == None:
-#             return ((jog1.nome,jog2.nome),lista_jogadas, -1 if proxjog==jog1 else 1)
-#         else:
-#  #           p = game.to_move(estado)
-#             estado=game.result(estado,jogada)
-#             lista_jogadas.append(jogada)
-#             proxjog = jog2 if proxjog == jog1 else jog1
-#         #p jogou e ganhou
-#     return ((jog1.nome,jog2.nome),lista_jogadas, game.utility(estado,1))
+def joga11com_timeout(game,jog1, jog2, nsec):
+    ### jog1 e jog2 são jogadores com funções que dado um estado do jogo devolvem a jogada que escolheram
+    ### devolve uma lista de jogadas e o resultado 1 se Brancas ganha -1 se Pretas ganha
+    estado=game.initial
+    proxjog = jog1
+    lista_jogadas=[]
+    while not game.terminal_test(estado):
+        try:
+            ReturnedValue = func_timeout(nsec, proxjog.fun, args=(game, estado))
+        except FunctionTimedOut:
+            print("EXCEDEU O TEMO!\n\n", proxjog.nome)
+            ReturnedValue = None    
+        jogada = ReturnedValue
+        if jogada == None:
+            return ((jog1.nome,jog2.nome),lista_jogadas, -1 if proxjog==jog1 else 1)
+        else:
+ #           p = game.to_move(estado)
+            estado=game.result(estado,jogada)
+            lista_jogadas.append(jogada)
+            proxjog = jog2 if proxjog == jog1 else jog1
+        #p jogou e ganhou
+    return ((jog1.nome,jog2.nome),lista_jogadas, game.utility(estado,1))
 
 # def jogaNN(game, listaJog, listaAdv, nsec=1):
 #     ### devolve uma lista de tuplos da forma (j1, j2, (lista de jogadas, vencedor))
