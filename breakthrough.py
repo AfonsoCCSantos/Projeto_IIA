@@ -147,21 +147,21 @@ class GigaChad(JogadorAlfaBeta):
             row = pos[1]
             # Win or lost state
             if (piece == "W" and row == 8) or (piece == "B" and row == 1):
-                return (16**16)-state.num_plays if piece_player == piece else -(16**16)
+                return (8**8 * 16)-state.num_plays if piece_player == piece else -(8**8 * 16)
             # State where win/lost is guaranteed next round
             if ((piece == "W" and row == 7) or (piece == "B" and row == 2)) and notThreathned2(pos,state,piece):
-                return (8**8 * 15)-state.num_plays if piece_player == piece else -(8**8 * 15)
+                return (8**8 * 15)-state.num_plays if piece_player == piece else -(8**8 * 16)
             if piece_player == piece:
                 if piece == "W":
-                    res += (row**row) 
+                    res += (row*row) 
                 else:
                     inv = 8 - row + 1
-                    res += (inv**inv)
+                    res += (inv*inv)
                 # Vantagem em numero de pecas
                 counter += 1
             else:
                 counter -=1
-        return res + (8**8 * counter)
+        return res + (5**5 * counter)
 
 def notThreathned(pos,state,piece):
     col,row = pos
@@ -233,13 +233,13 @@ class TarzanTaborda(JogadorAlfaBeta):
                 return (8**8 * 16)-state.num_plays if piece_player == piece else -(8**8 * 16)
             # State where win/lost is guaranteed next round
             if ((piece == "W" and row == 7) or (piece == "B" and row == 2)) and notThreathned(pos,state,piece):
-                return (8**8 * 15)-state.num_plays if piece_player == piece else -(8**8 * 15)
+                return (8**8 * 15)-state.num_plays if piece_player == piece else -(8**8 * 16)
             if piece_player == piece:
                 if piece == "W":
-                    res += (row**row) 
+                    res += (row*row) 
                 else:
                     inv = 8 - row + 1
-                    res += (inv**inv)
+                    res += (inv*inv)
                 # Vantagem em numero de pecas
                 counter += 1
             else:
@@ -249,7 +249,7 @@ class TarzanTaborda(JogadorAlfaBeta):
         # if three[0]:
         #     # print(f"THREE IN ROW DE {three[1]}")
         #     return (8**8 * 14)-state.num_plays if three[1] == piece_player else -(8**8 * 14)
-        return res + (8**8 * counter)
+        return res + (5**5 * counter)
 
         
 
@@ -305,9 +305,15 @@ class PecasNoMeio(JogadorAlfaBeta):
      
 jj = JogoBT_17() 
 
+# board = {(6,7):"W", (6,6):"W", (8,6):"W", (8,8):"B", (5,7):"B",(5,8):"B", (8,7):"B"}
+
+# jj.initial = EstadoBT_17(1,board,4)
+# jj.display(jj.initial)
+# print(notThreathned((6,7),jj.initial,"W"))
+
 # for i in range(0,10):
-a = joga11(jj,TarzanTaborda(),Belarmino())
-    # print(a[0][a[-1] if a[-1] == -1 else 0])
+a = joga11(jj,TarzanTaborda(),GigaChad())
+# print(a[0][a[-1] if a[-1] == -1 else 0])
 
 # print(a)
 mostraJogo(jj,a,True,True)

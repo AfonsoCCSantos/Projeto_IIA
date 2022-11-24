@@ -223,6 +223,7 @@ def alphabeta_cutoff_search_new(state, game, d=4, cutoff_test=None, eval_fn=None
         if v > best_score:
             best_score = v
             best_action = a
+    # print("W" if state.to_move == 1 else "B" ,best_score)
     return best_action
 # ______________________________________________________________________________
 # A classe Game
